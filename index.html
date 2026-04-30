@@ -223,7 +223,7 @@
     <div class="app-wrapper">
         <div class="header">
             <h2>CCO - Malha Sul</h2>
-            <p class="subtitle">Localizador de Paradas e Despacho de Equipes</p>
+            <p class="subtitle">Localizador de Paradas de Trens</p>
         </div>
         
         <div class="controls-panel" id="painelControles">
@@ -324,7 +324,7 @@
 
                 const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
                 
-                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
+                const mensagem = `*🚨 Deslocamento de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
                 
                 const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
                 window.open(urlWhatsApp, '_blank');
