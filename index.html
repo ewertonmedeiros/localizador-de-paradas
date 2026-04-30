@@ -3,109 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Localizador de Paradas de Trens | CCO - Malha Sul</title>
+    <title>Localizador de Paradas | CCO - Malha Sul</title>
     
     <!-- CSS do Leaflet para o mapa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
+        /* Paleta de Cores e Estilos Base herdados do Systemp */
         :root {
-            --bg-color: #121212;         
-            --panel-bg: #0A1C2C;         
-            --text-color: #53A53B;       
-            --primary-color: #007bff;    
-            --primary-hover: #0056b3;    
-            --route-color: #28a745;      
-            --route-hover: #218838;     
+            --cor-primaria: #0A1C2C;
+            --cor-secundaria: #53A53B;
+            --cor-fundo: #F4F7F6;
+            --cor-texto: #333333;
+            --cor-branco: #FFFFFF;
+            
             --alert-color: #e67e22;
             --alert-hover: #d35400;
             --whatsapp-color: #25D366;   
             --whatsapp-hover: #1DA851;
-            --border-color: #333333;     
+            --cor-slider: #cbd5e1;
         }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            background-color: var(--bg-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--text-color);
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         }
 
-        /* VISÃO DESKTOP */
-        body {
-            display: flex;
-            justify-content: center;
+        /* Estrutura principal do Systemp */
+        body { 
+            background-color: var(--cor-fundo); 
+            color: var(--cor-texto); 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+        }
+
+        /* Cabeçalho Oficial */
+        header { 
+            background-color: var(--cor-primaria); 
+            color: var(--cor-branco); 
+            padding: 1rem; 
+            border-bottom: 5px solid var(--cor-secundaria); 
+            position: relative; 
+            z-index: 1001; 
+            flex-shrink: 0;
+        }
+        
+        .header-content { 
+            display: flex; 
             align-items: center; 
-            min-height: 100vh;
-            padding: 20px;
+            justify-content: center; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            text-align: center; 
+        }
+        
+        .header-text h1 { 
+            font-size: 1.8rem; 
+            margin-bottom: 0.2rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+        
+        .header-text h2 { 
+            font-size: 1.1rem; 
+            font-weight: 300; 
+            color: var(--cor-secundaria); 
         }
 
-        .app-wrapper {
-            background-color: var(--panel-bg);
-            width: 100%;
-            max-width: 1000px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; 
+        /* Área Principal */
+        main { 
+            flex: 1; 
+            padding: 1rem 2rem; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1.5rem;
         }
 
-        .header {
-            padding: 20px 25px 5px 25px;
-            text-align: center;
+        /* Painel de Controles (Estilo Card Systemp) */
+        .card-controls {
+            background-color: var(--cor-branco); 
+            border-radius: 8px; 
+            padding: 1.5rem; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border-top: 5px solid var(--cor-primaria);
             flex-shrink: 0;
         }
-
-        .controls-panel {
-            padding: 15px 25px 25px 25px;
-            flex-shrink: 0;
-        }
-
-        h2 { margin: 0 0 5px 0; font-size: 24px; font-weight: 600; }
-        .subtitle { margin: 0; color: #aaaaaa; font-size: 15px; }
 
         .input-group {
             display: flex;
             gap: 15px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
         .input-group input {
             flex: 1;
             padding: 12px;
-            background-color: #112a40; 
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
+            background-color: var(--cor-fundo); 
+            border: 1px solid #cccccc;
+            color: var(--cor-texto);
             border-radius: 6px;
             font-size: 14px;
+            min-width: 150px;
         }
 
         .input-group input:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: var(--cor-secundaria);
+            box-shadow: 0 0 0 2px rgba(83, 165, 59, 0.2);
         }
 
         .btn {
-            padding: 12px 15px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 30px; /* Arredondamento do Systemp */
             cursor: pointer;
             font-weight: bold;
             font-size: 14px;
-            transition: background-color 0.3s;
-            color: #ffffff;
+            transition: all 0.3s ease;
+            color: var(--cor-branco);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        .btn-search { background-color: var(--primary-color); flex: 1; }
-        .btn-search:hover { background-color: var(--primary-hover); }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+        }
+
+        .btn-search { background-color: var(--cor-primaria); flex: 1; }
+        .btn-search:hover { background-color: #15324d; }
 
         .actions-group {
             display: flex;
@@ -121,27 +158,33 @@
         .btn-alert { background-color: var(--alert-color); flex: 1; min-width: 200px; }
         .btn-alert:hover { background-color: var(--alert-hover); }
 
-        .btn-route { background-color: var(--route-color); flex: 1; min-width: 200px; }
-        .btn-route:hover { background-color: var(--route-hover); }
+        .btn-route { background-color: var(--cor-secundaria); flex: 1; min-width: 200px; }
+        .btn-route:hover { background-color: #3d7d2a; }
 
         .info-panel {
-            background-color: #112a40;
+            background-color: var(--cor-fundo);
             border-left: 4px solid var(--alert-color);
             padding: 15px;
             margin-top: 15px;
             border-radius: 4px;
             display: none;
             font-size: 14px;
-            line-height: 1.5;
-            color: #e0e0e0;
+            line-height: 1.6;
+            color: var(--cor-texto);
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid var(--alert-color);
         }
 
-        /* O segredo da correção do mapa está aqui: Position absolute no mapa garante que o Leaflet não se perca */
+        /* Contêiner do Mapa */
         .map-container {
-            width: 100%;
-            height: 500px; 
+            flex: 1; /* Ocupa o espaço restante */
+            min-height: 400px; 
             position: relative;
-            border-top: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--cor-secundaria);
+            overflow: hidden;
+            background-color: var(--cor-branco);
         }
 
         #map {
@@ -153,80 +196,58 @@
             z-index: 1; 
         }
 
-        footer {
-            text-align: center;
-            padding: 12px;
-            font-size: 12px;
-            color: #888888;
-            background-color: #081622;
-            border-top: 1px solid var(--border-color);
-            flex-shrink: 0; 
+        /* Rodapé Oficial */
+        footer { 
+            background-color: var(--cor-primaria); 
+            color: var(--cor-branco); 
+            text-align: center; 
+            padding: 1rem; 
+            font-size: 0.9rem; 
+            flex-shrink: 0;
         }
-
-        footer span {
-            color: var(--text-color);
-            font-weight: 600;
+        
+        footer span { 
+            color: var(--cor-secundaria); 
+            font-weight: bold; 
         }
 
         /* VISÃO MOBILE */
         @media (max-width: 768px) {
-            html, body {
-                height: auto;
-                min-height: 100%;
-            }
-
-            body {
-                padding: 0;
-                display: flex; /* Garante que o app-wrapper possa usar 100dvh */
-            }
-
-            .app-wrapper {
-                width: 100%;
-                min-height: 100dvh; 
-                border-radius: 0;
-                border: none;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .header { padding: 15px 15px 5px 15px; }
-            h2 { font-size: 20px; }
-
-            .controls-panel { 
-                padding: 10px 15px 15px 15px; 
-                flex-shrink: 0; 
-            }
-
+            .header-text h1 { font-size: 1.4rem; }
+            .header-text h2 { font-size: 0.9rem; }
+            
+            main { padding: 1rem; gap: 1rem; }
+            
+            .card-controls { padding: 1rem; }
+            
             .input-group, .actions-group {
                 flex-direction: column;
                 gap: 10px;
-                margin-bottom: 10px;
             }
             
-            .btn { padding: 14px 15px; font-size: 15px; min-width: 100%; }
+            .btn { width: 100%; padding: 14px; font-size: 15px; }
 
             .map-container {
-                height: auto;
-                flex-grow: 1; /* Ocupa todo o espaço restante entre o painel e o rodapé */
-                min-height: 50vh; /* No mobile, o mapa tem que ter no mínimo metade da tela */
+                min-height: 50vh; /* Garante tamanho generoso para o mapa no celular */
             }
             
-            footer {
-                padding: 15px;
-                font-size: 12px;
-            }
+            footer { padding: 15px; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-wrapper">
-        <div class="header">
-            <h2>Localizador de Paradas de Trens</h2>
-            <p class="subtitle">CCO - Malha Sul</p>
+    <header>
+        <div class="header-content">
+            <div class="header-text">
+                <h1>Localizador de Paradas de Trens</h1>
+                <h2>CCO | Malha Sul</h2>
+            </div>
         </div>
-        
-        <div class="controls-panel" id="painelControles">
+    </header>
+
+    <main>
+        <div class="card-controls" id="painelControles">
             <div class="input-group">
                 <input type="number" id="lng" placeholder="Longitude (ex: -49.0633)" step="any">
                 <input type="number" id="lat" placeholder="Latitude (ex: -25.4417)" step="any">
@@ -245,11 +266,11 @@
         <div class="map-container">
             <div id="map"></div>
         </div>
+    </main>
 
-        <footer>
-            Desenvolvido por <span>Ewerton Siqueira Medeiros</span> &copy; 2026.
-        </footer>
-    </div>
+    <footer>
+        Desenvolvido por <span>Ewerton Siqueira Medeiros</span> &copy; 2026.
+    </footer>
 
     <!-- JS do Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -265,13 +286,11 @@
             attribution: '&copy; OpenStreetMap &copy; CARTO'
         }).addTo(map);
 
-        // Força a atualização do tamanho do mapa em dispositivos móveis
         window.addEventListener('resize', function() {
             setTimeout(() => map.invalidateSize(), 200);
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Gatilho inicial para evitar tela cinza no carregamento mobile
             setTimeout(() => map.invalidateSize(), 300);
 
             const params = new URLSearchParams(window.location.search);
