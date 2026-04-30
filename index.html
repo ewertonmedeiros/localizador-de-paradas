@@ -31,7 +31,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         }
 
-        /* Estrutura principal do Systemp */
+        /* Estrutura principal */
         body { 
             background-color: var(--cor-fundo); 
             color: var(--cor-texto); 
@@ -86,7 +86,7 @@
             gap: 1.5rem;
         }
 
-        /* Painel de Controles (Estilo Card Systemp) */
+        /* Painel de Controles */
         .card-controls {
             background-color: var(--cor-branco); 
             border-radius: 8px; 
@@ -100,7 +100,7 @@
             display: flex;
             gap: 15px;
             margin-bottom: 15px;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Em telas médias permite quebrar a linha suavemente se necessário */
         }
 
         .input-group input {
@@ -111,7 +111,7 @@
             color: var(--cor-texto);
             border-radius: 6px;
             font-size: 14px;
-            min-width: 150px;
+            min-width: 130px;
         }
 
         .input-group input:focus {
@@ -120,10 +120,17 @@
             box-shadow: 0 0 0 2px rgba(83, 165, 59, 0.2);
         }
 
+        .input-prefixo {
+            font-weight: bold;
+            color: var(--cor-primaria) !important;
+            text-transform: uppercase; /* Força letra maiúscula visualmente */
+            flex: 0.7 !important; /* Deixa o campo de prefixo levemente menor no desktop */
+        }
+
         .btn {
             padding: 12px 20px;
             border: none;
-            border-radius: 30px; /* Arredondamento do Systemp */
+            border-radius: 30px; 
             cursor: pointer;
             font-weight: bold;
             font-size: 14px;
@@ -177,7 +184,7 @@
 
         /* Contêiner do Mapa */
         .map-container {
-            flex: 1; /* Ocupa o espaço restante */
+            flex: 1; 
             min-height: 400px; 
             position: relative;
             border-radius: 8px;
@@ -220,15 +227,18 @@
             
             .card-controls { padding: 1rem; }
             
+            /* O Flex direction column força o empilhamento dos campos no mobile */
             .input-group, .actions-group {
                 flex-direction: column;
                 gap: 10px;
             }
             
+            .input-prefixo { flex: 1 !important; }
+
             .btn { width: 100%; padding: 14px; font-size: 15px; }
 
             .map-container {
-                min-height: 50vh; /* Garante tamanho generoso para o mapa no celular */
+                min-height: 50vh; 
             }
             
             footer { padding: 15px; font-size: 0.8rem; }
@@ -248,7 +258,9 @@
 
     <main>
         <div class="card-controls" id="painelControles">
+            <!-- Todos os campos agora estão agrupados em um único input-group para ficarem na mesma linha no Desktop -->
             <div class="input-group">
+                <input type="text" id="prefixo" class="input-prefixo" placeholder="Prefixo (Ex: M12)" maxlength="3">
                 <input type="number" id="lng" placeholder="Longitude (ex: -49.0633)" step="any">
                 <input type="number" id="lat" placeholder="Latitude (ex: -25.4417)" step="any">
                 <button class="btn btn-search" onclick="buscarNoMapa()">Exibir no Mapa</button>
@@ -279,7 +291,8 @@
         let currentMarker = null;
         let equipeMarker = null;
         let routeLayer = null;
-        let coordsAtuais = { lat: null, lng: null };
+        
+        let dadosAtuais = { prefixo: '', lat: null, lng: null };
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
@@ -294,9 +307,11 @@
             setTimeout(() => map.invalidateSize(), 300);
 
             const params = new URLSearchParams(window.location.search);
+            const urlPrefixo = params.get('prefixo');
             const urlLat = params.get('lat');
             const urlLng = params.get('lng');
 
+            if (urlPrefixo) document.getElementById('prefixo').value = urlPrefixo.toUpperCase();
             if (urlLat && urlLng) {
                 document.getElementById('lat').value = urlLat;
                 document.getElementById('lng').value = urlLng;
@@ -305,18 +320,26 @@
         });
 
         function buscarNoMapa() {
+            // Pega o valor e força caixa alta por segurança extra
+            const prefixoInput = document.getElementById('prefixo').value.toUpperCase();
             const latInput = document.getElementById('lat').value;
             const lngInput = document.getElementById('lng').value;
+
+            if(!prefixoInput) {
+                alert("Por favor, informe o Prefixo do Trem ou Veículo (máx 3 caracteres) antes de prosseguir.");
+                return;
+            }
 
             if(!latInput || !lngInput) {
                 alert("Por favor, insira valores válidos para Longitude e Latitude.");
                 return;
             }
 
-            coordsAtuais.lat = parseFloat(latInput);
-            coordsAtuais.lng = parseFloat(lngInput);
+            dadosAtuais.prefixo = prefixoInput;
+            dadosAtuais.lat = parseFloat(latInput);
+            dadosAtuais.lng = parseFloat(lngInput);
 
-            map.flyTo([coordsAtuais.lat, coordsAtuais.lng], 16, {
+            map.flyTo([dadosAtuais.lat, dadosAtuais.lng], 16, {
                 animate: true,
                 duration: 1.5
             });
@@ -326,24 +349,24 @@
             if (routeLayer) map.removeLayer(routeLayer);
             document.getElementById('routeInfo').style.display = 'none';
 
-            currentMarker = L.marker([coordsAtuais.lat, coordsAtuais.lng]).addTo(map)
-                .bindPopup(`<b>Parada do Trem</b><br>Lng: ${coordsAtuais.lng}<br>Lat: ${coordsAtuais.lat}`)
+            currentMarker = L.marker([dadosAtuais.lat, dadosAtuais.lng]).addTo(map)
+                .bindPopup(`<b>Atendimento: ${dadosAtuais.prefixo}</b><br>Lng: ${dadosAtuais.lng}<br>Lat: ${dadosAtuais.lat}`)
                 .openPopup();
 
             document.getElementById('actionsGroup').style.display = 'flex';
         }
 
         function compartilharWhatsApp() {
-            if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
+            if(dadosAtuais.lat !== null && dadosAtuais.lng !== null) {
                 let baseUrl = window.location.origin + window.location.pathname;
                 
                 if (baseUrl === "null" || baseUrl.includes("file://")) {
                     baseUrl = "SeuLinkHospedadoAqui"; 
                 }
 
-                const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
+                const linkSistema = `${baseUrl}?prefixo=${encodeURIComponent(dadosAtuais.prefixo)}&lat=${dadosAtuais.lat}&lng=${dadosAtuais.lng}`;
                 
-                const mensagem = `*🚨 Deslocamento de Equipe Emergencial - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
+                const mensagem = `*🚨 Deslocamento de Equipe Emergencial - CCO Malha Sul*\n\n*Prefixo:* ${dadosAtuais.prefixo}\n*Localização da Parada:*\nLat: ${dadosAtuais.lat}\nLng: ${dadosAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
                 
                 const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
                 window.open(urlWhatsApp, '_blank');
@@ -371,7 +394,7 @@
                     const equipeLat = position.coords.latitude;
                     const equipeLng = position.coords.longitude;
 
-                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${equipeLng},${equipeLat};${coordsAtuais.lng},${coordsAtuais.lat}?overview=full&geometries=geojson`;
+                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${equipeLng},${equipeLat};${dadosAtuais.lng},${dadosAtuais.lat}?overview=full&geometries=geojson`;
 
                     fetch(osrmUrl)
                         .then(response => response.json())
@@ -393,7 +416,7 @@
                             }
 
                             infoPanel.innerHTML = `
-                                <strong style="color: var(--alert-color);">🚨 Relatório de Deslocamento</strong><br>
+                                <strong style="color: var(--alert-color);">🚨 Relatório de Deslocamento (${dadosAtuais.prefixo})</strong><br>
                                 <b>Distância:</b> ${distanciaKm} km<br>
                                 <b>Tempo Estimado:</b> ${tempoFormatado}<br>
                                 <button class="btn btn-route" style="margin-top: 12px; width: 100%; font-size: 15px;" onclick="tracarRotaGmaps()">🗺️ Iniciar Navegação no GPS</button>
@@ -426,8 +449,8 @@
         }
 
         function tracarRotaGmaps() {
-            if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
-                const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${coordsAtuais.lat},${coordsAtuais.lng}`;
+            if(dadosAtuais.lat !== null && dadosAtuais.lng !== null) {
+                const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${dadosAtuais.lat},${dadosAtuais.lng}`;
                 window.open(urlGmaps, '_blank');
             }
         }
