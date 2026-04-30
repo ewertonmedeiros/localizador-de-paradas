@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CCO - Malha Sul</title>
     
     <!-- CSS do Leaflet para o mapa -->
@@ -10,7 +10,7 @@
     
     <style>
         :root {
-            /* Paleta inspirada no Monitor Systemp */
+            /* Paleta original */
             --bg-color: #121212;         
             --panel-bg: #0A1C2C;         
             --text-color: #53A53B;       
@@ -20,70 +20,69 @@
             --route-hover: #218838;     
             --alert-color: #e67e22;
             --alert-hover: #d35400;
+            --whatsapp-color: #25D366;   
+            --whatsapp-hover: #1DA851;
             --border-color: #333333;     
         }
 
-        /* Configuração de altura total para a tela */
+        /* Configuração Base */
         html, body {
-            height: 100%;
-            width: 100%;
             margin: 0;
+            padding: 0;
             box-sizing: border-box;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
         }
 
+        /* ====================================================
+           VISÃO DESKTOP (Padrão para telas grandes)
+           ==================================================== */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center; /* Centraliza vertical e horizontalmente */
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        .container {
+        .app-wrapper {
             background-color: var(--panel-bg);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 100%;
+            max-width: 1000px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            flex: 1; 
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
+            overflow: hidden; /* Garante que os cantos arredondados prendam o mapa */
         }
 
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 5px;
-            font-weight: 600;
+        .header, .controls-panel {
+            padding: 20px 25px;
         }
 
-        .subtitle {
+        .header {
+            padding-bottom: 5px;
             text-align: center;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #aaaaaa;
-            font-size: 16px;
         }
+
+        h2 { margin: 0 0 5px 0; font-size: 24px; font-weight: 600; }
+        .subtitle { margin: 0; color: #aaaaaa; font-size: 15px; }
 
         .input-group {
             display: flex;
             gap: 15px;
             margin-bottom: 15px;
-            flex-wrap: wrap;
         }
 
         .input-group input {
             flex: 1;
             padding: 12px;
-            background-color: #112a40; /* Leve ajuste para contraste no painel */
+            background-color: #112a40; 
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 6px;
-            min-width: 150px;
             font-size: 14px;
         }
 
@@ -93,12 +92,12 @@
         }
 
         .btn {
-            padding: 12px 20px;
+            padding: 12px 15px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             transition: background-color 0.3s;
             color: #ffffff;
             display: flex;
@@ -107,31 +106,24 @@
             gap: 8px;
         }
 
-        .btn-search {
-            background-color: var(--primary-color);
-            flex: 1;
-            min-width: 150px;
-        }
+        .btn-search { background-color: var(--primary-color); flex: 1; }
         .btn-search:hover { background-color: var(--primary-hover); }
 
         .actions-group {
             display: flex;
             gap: 15px;
             margin-top: 15px;
-            flex-wrap: wrap;
-            display: none; /* Oculto até localizar a parada */
+            display: none; 
+            flex-wrap: wrap; /* Permite os botões irem para a linha de baixo se não couberem */
         }
 
-        .btn-alert {
-            background-color: var(--alert-color);
-            flex: 1;
-        }
+        .btn-alert { background-color: var(--alert-color); flex: 1; min-width: 200px; }
         .btn-alert:hover { background-color: var(--alert-hover); }
 
-        .btn-route {
-            background-color: var(--route-color);
-            flex: 1;
-        }
+        .btn-share { background-color: var(--whatsapp-color); flex: 1; color: #000; min-width: 200px; }
+        .btn-share:hover { background-color: var(--whatsapp-hover); color: #fff; }
+
+        .btn-route { background-color: var(--route-color); flex: 1; min-width: 200px; }
         .btn-route:hover { background-color: var(--route-hover); }
 
         .info-panel {
@@ -141,50 +133,90 @@
             margin-top: 15px;
             border-radius: 4px;
             display: none;
-            font-size: 15px;
-            line-height: 1.6;
+            font-size: 14px;
+            line-height: 1.5;
             color: #e0e0e0;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 500px; /* Altura fixa ideal para ver em telas de computador */
+            position: relative;
+            border-top: 1px solid var(--border-color);
         }
 
         #map {
             width: 100%;
-            flex: 1; 
-            min-height: 300px; 
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            height: 100%;
             z-index: 1; 
         }
 
-        /* Ajustes para mobile */
-        @media (max-width: 600px) {
-            body { padding: 10px; }
+        /* ====================================================
+           VISÃO MOBILE (Telas menores que 768px)
+           ==================================================== */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                align-items: stretch; /* Remove centralização para preencher a tela */
+                min-height: 100dvh; /* dynamic viewport height para lidar com a barra do Chrome/Safari */
+            }
+
+            .app-wrapper {
+                max-width: 100%;
+                border-radius: 0;
+                border: none;
+                height: 100dvh; /* Força o painel a ter a exata altura da tela do celular */
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header, .controls-panel { padding: 15px; }
+            .header { padding-top: 10px; }
+            h2 { font-size: 20px; }
+
             .input-group, .actions-group {
                 flex-direction: column;
                 gap: 10px;
+                margin-bottom: 10px;
+            }
+            
+            /* Botões mais fáceis de clicar com o dedo */
+            .btn { padding: 14px 15px; font-size: 15px; min-width: 100%; }
+
+            .map-container {
+                flex: 1; /* O pulo do gato: o mapa estica até o limite final da tela do celular */
+                height: auto; 
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>CCO - Malha Sul</h2>
-        <p class="subtitle">Localizador de Paradas de Trens e Despacho</p>
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>CCO - Malha Sul</h2>
+            <p class="subtitle">Localizador de Paradas e Despacho de Equipes</p>
+        </div>
         
-        <div class="input-group">
-            <input type="number" id="lng" placeholder="Longitude (ex: -49.0633)" step="any">
-            <input type="number" id="lat" placeholder="Latitude (ex: -25.4417)" step="any">
-            <button class="btn btn-search" onclick="buscarNoMapa()">Exibir no Mapa</button>
+        <div class="controls-panel">
+            <div class="input-group">
+                <input type="number" id="lng" placeholder="Longitude (ex: -49.0633)" step="any">
+                <input type="number" id="lat" placeholder="Latitude (ex: -25.4417)" step="any">
+                <button class="btn btn-search" onclick="buscarNoMapa()">Exibir no Mapa</button>
+            </div>
+
+            <div class="actions-group" id="actionsGroup">
+                <button class="btn btn-alert" onclick="calcularRotaEquipe()">🚨 Traçar Minha Rota (Equipe)</button>
+                <button class="btn btn-share" onclick="compartilharWhatsApp()">📱 Enviar Link via WhatsApp</button>
+                <button class="btn btn-route" onclick="tracarRotaGmaps()">🗺️ Abrir Google Maps</button>
+            </div>
+
+            <div class="info-panel" id="routeInfo"></div>
         </div>
 
-        <div id="map"></div>
-        
-        <div class="actions-group" id="actionsGroup">
-            <button class="btn btn-alert" onclick="calcularRotaEquipe()">🚨 Despachar Equipe (Traçar Rota)</button>
-            <button class="btn btn-route" onclick="tracarRota()">🗺️ Navegar no Google Maps</button>
+        <div class="map-container">
+            <div id="map"></div>
         </div>
-
-        <div class="info-panel" id="routeInfo"></div>
     </div>
 
     <!-- JS do Leaflet -->
@@ -196,7 +228,6 @@
         let routeLayer = null;
         let coordsAtuais = { lat: null, lng: null };
 
-        // Servidor CartoDB
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap &copy; CARTO'
@@ -204,6 +235,19 @@
 
         window.addEventListener('resize', function() {
             map.invalidateSize();
+        });
+
+        // Lê a URL ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const urlLat = params.get('lat');
+            const urlLng = params.get('lng');
+
+            if (urlLat && urlLng) {
+                document.getElementById('lat').value = urlLat;
+                document.getElementById('lng').value = urlLng;
+                buscarNoMapa();
+            }
         });
 
         function buscarNoMapa() {
@@ -223,17 +267,15 @@
                 duration: 1.5
             });
 
-            // Limpa marcadores e rotas anteriores
             if (currentMarker) map.removeLayer(currentMarker);
             if (equipeMarker) map.removeLayer(equipeMarker);
             if (routeLayer) map.removeLayer(routeLayer);
             document.getElementById('routeInfo').style.display = 'none';
 
             currentMarker = L.marker([coordsAtuais.lat, coordsAtuais.lng]).addTo(map)
-                .bindPopup(`<b>Parada Localizada (Trem)</b><br>Lng: ${coordsAtuais.lng}<br>Lat: ${coordsAtuais.lat}`)
+                .bindPopup(`<b>Parada do Trem</b><br>Lng: ${coordsAtuais.lng}<br>Lat: ${coordsAtuais.lat}`)
                 .openPopup();
 
-            // Mostra os botões de ação
             document.getElementById('actionsGroup').style.display = 'flex';
         }
 
@@ -244,23 +286,21 @@
             }
 
             const infoPanel = document.getElementById('routeInfo');
-            infoPanel.innerHTML = "Obtendo localização da equipe e calculando rota rodoviária...";
+            infoPanel.innerHTML = "Obtendo sua localização atual. Aguarde...";
             infoPanel.style.display = "block";
 
-            // Captura a localização de quem clicou no botão
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const equipeLat = position.coords.latitude;
                     const equipeLng = position.coords.longitude;
 
-                    // API Pública do OSRM para traçar rota de carro (driving)
                     const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${equipeLng},${equipeLat};${coordsAtuais.lng},${coordsAtuais.lat}?overview=full&geometries=geojson`;
 
                     fetch(osrmUrl)
                         .then(response => response.json())
                         .then(data => {
                             if(data.code !== "Ok") {
-                                infoPanel.innerHTML = "Não foi possível traçar uma rota terrestre viável até este local.";
+                                infoPanel.innerHTML = "Não foi possível traçar uma rota terrestre viável.";
                                 return;
                             }
 
@@ -268,7 +308,6 @@
                             const distanciaKm = (route.distance / 1000).toFixed(1);
                             const tempoMin = Math.round(route.duration / 60);
 
-                            // Formatação amigável de tempo
                             let tempoFormatado = `${tempoMin} min`;
                             if (tempoMin > 60) {
                                 const horas = Math.floor(tempoMin / 60);
@@ -278,42 +317,46 @@
 
                             infoPanel.innerHTML = `
                                 <strong style="color: var(--alert-color);">🚨 Relatório de Deslocamento</strong><br>
-                                <b>Distância Rodoviária:</b> ${distanciaKm} km<br>
-                                <b>Tempo Estimado de Viagem:</b> ${tempoFormatado}
+                                <b>Distância:</b> ${distanciaKm} km<br>
+                                <b>Tempo Estimado:</b> ${tempoFormatado}
                             `;
 
-                            // Limpa rota anterior se existir
                             if (routeLayer) map.removeLayer(routeLayer);
                             if (equipeMarker) map.removeLayer(equipeMarker);
 
-                            // Desenha a linha da rota no mapa
                             routeLayer = L.geoJSON(route.geometry, {
-                                style: {
-                                    color: '#e67e22',
-                                    weight: 6,
-                                    opacity: 0.8
-                                }
+                                style: { color: '#e67e22', weight: 6, opacity: 0.8 }
                             }).addTo(map);
 
-                            // Adiciona marcador da equipe
                             equipeMarker = L.marker([equipeLat, equipeLng]).addTo(map)
-                                .bindPopup("<b>Origem (Equipe)</b>");
+                                .bindPopup("<b>Sua Posição (Equipe)</b>");
 
-                            // Ajusta a câmera do mapa para englobar o ponto de partida e o destino
-                            map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+                            map.fitBounds(routeLayer.getBounds(), { padding: [30, 30] });
                         })
                         .catch(err => {
                             console.error(err);
-                            infoPanel.innerHTML = "Erro ao conectar com o servidor de rotas da OSRM.";
+                            infoPanel.innerHTML = "Erro ao conectar com o servidor de rotas.";
                         });
                 },
                 (error) => {
-                    infoPanel.innerHTML = "Erro ao obter localização. Verifique se o GPS está ativado e a permissão concedida no navegador.";
+                    infoPanel.innerHTML = "Erro ao obter localização. Ative o GPS do seu celular e dê permissão de localização ao navegador.";
                 }
             );
         }
 
-        function tracarRota() {
+        function compartilharWhatsApp() {
+            if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
+                
+                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*%0A%0A*Localização da Parada:*%0ALat: ${coordsAtuais.lat}%0ALng: ${coordsAtuais.lng}%0A%0A*Acesse o painel abaixo para visualizar a ocorrência e traçar sua rota até o local:*%0A${linkSistema}`;
+                
+                const urlWhatsApp = `https://api.whatsapp.com/send?text=${mensagem}`;
+                window.open(urlWhatsApp, '_blank');
+            }
+        }
+
+        function tracarRotaGmaps() {
             if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
                 const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${coordsAtuais.lat},${coordsAtuais.lng}`;
                 window.open(urlGmaps, '_blank');
