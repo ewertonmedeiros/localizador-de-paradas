@@ -41,7 +41,7 @@
         body {
             display: flex;
             justify-content: center;
-            align-items: center; /* Centraliza vertical e horizontalmente */
+            align-items: center; 
             min-height: 100vh;
             padding: 20px;
         }
@@ -55,7 +55,7 @@
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Garante que os cantos arredondados prendam o mapa */
+            overflow: hidden; 
         }
 
         .header, .controls-panel {
@@ -114,14 +114,14 @@
             gap: 15px;
             margin-top: 15px;
             display: none; 
-            flex-wrap: wrap; /* Permite os botões irem para a linha de baixo se não couberem */
+            flex-wrap: wrap; 
         }
-
-        .btn-alert { background-color: var(--alert-color); flex: 1; min-width: 200px; }
-        .btn-alert:hover { background-color: var(--alert-hover); }
 
         .btn-share { background-color: var(--whatsapp-color); flex: 1; color: #000; min-width: 200px; }
         .btn-share:hover { background-color: var(--whatsapp-hover); color: #fff; }
+
+        .btn-alert { background-color: var(--alert-color); flex: 1; min-width: 200px; }
+        .btn-alert:hover { background-color: var(--alert-hover); }
 
         .btn-route { background-color: var(--route-color); flex: 1; min-width: 200px; }
         .btn-route:hover { background-color: var(--route-hover); }
@@ -140,7 +140,7 @@
 
         .map-container {
             width: 100%;
-            height: 500px; /* Altura fixa ideal para ver em telas de computador */
+            height: 500px; 
             position: relative;
             border-top: 1px solid var(--border-color);
         }
@@ -157,15 +157,15 @@
         @media (max-width: 768px) {
             body {
                 padding: 0;
-                align-items: stretch; /* Remove centralização para preencher a tela */
-                min-height: 100dvh; /* dynamic viewport height para lidar com a barra do Chrome/Safari */
+                align-items: stretch; 
+                min-height: 100dvh; 
             }
 
             .app-wrapper {
                 max-width: 100%;
                 border-radius: 0;
                 border: none;
-                height: 100dvh; /* Força o painel a ter a exata altura da tela do celular */
+                height: 100dvh; 
                 display: flex;
                 flex-direction: column;
             }
@@ -180,11 +180,10 @@
                 margin-bottom: 10px;
             }
             
-            /* Botões mais fáceis de clicar com o dedo */
             .btn { padding: 14px 15px; font-size: 15px; min-width: 100%; }
 
             .map-container {
-                flex: 1; /* O pulo do gato: o mapa estica até o limite final da tela do celular */
+                flex: 1; 
                 height: auto; 
             }
         }
@@ -206,8 +205,13 @@
             </div>
 
             <div class="actions-group" id="actionsGroup">
-                <button class="btn btn-alert" onclick="calcularRotaEquipe()">🚨 Traçar Minha Rota (Equipe)</button>
-                <button class="btn btn-share" onclick="compartilharWhatsApp()">📱 Enviar Link via WhatsApp</button>
+                <!-- Botão 1: Ação do CCO (Gera o link com as coordenadas e envia no zap) -->
+                <button class="btn btn-share" onclick="compartilharWhatsApp()">📱 Despachar Equipe (WhatsApp)</button>
+                
+                <!-- Botão 2: Ação da Equipe (Aciona o GPS do celular do funcionário para chegar ao local) -->
+                <button class="btn btn-alert" onclick="calcularRotaEquipe()">🚨 Traçar Minha Rota</button>
+                
+                <!-- Botão 3: Opção genérica para abrir a localização em outro app -->
                 <button class="btn btn-route" onclick="tracarRotaGmaps()">🗺️ Abrir Google Maps</button>
             </div>
 
@@ -237,7 +241,7 @@
             map.invalidateSize();
         });
 
-        // Lê a URL ao carregar a página
+        // Lê a URL ao carregar a página (Equipe acessando via link do WhatsApp)
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const urlLat = params.get('lat');
@@ -279,6 +283,20 @@
             document.getElementById('actionsGroup').style.display = 'flex';
         }
 
+        // Função do WhatsApp (Ação do CCO)
+        function compartilharWhatsApp() {
+            if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
+                
+                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*%0A%0A*Localização da Parada:*%0ALat: ${coordsAtuais.lat}%0ALng: ${coordsAtuais.lng}%0A%0A*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*%0A${linkSistema}`;
+                
+                const urlWhatsApp = `https://api.whatsapp.com/send?text=${mensagem}`;
+                window.open(urlWhatsApp, '_blank');
+            }
+        }
+
+        // Função OSRM (Ação da Equipe)
         function calcularRotaEquipe() {
             if (!navigator.geolocation) {
                 alert("Seu navegador não suporta geolocalização.");
@@ -344,18 +362,7 @@
             );
         }
 
-        function compartilharWhatsApp() {
-            if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
-                const baseUrl = window.location.origin + window.location.pathname;
-                const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
-                
-                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*%0A%0A*Localização da Parada:*%0ALat: ${coordsAtuais.lat}%0ALng: ${coordsAtuais.lng}%0A%0A*Acesse o painel abaixo para visualizar a ocorrência e traçar sua rota até o local:*%0A${linkSistema}`;
-                
-                const urlWhatsApp = `https://api.whatsapp.com/send?text=${mensagem}`;
-                window.open(urlWhatsApp, '_blank');
-            }
-        }
-
+        // Função Google Maps (Ação de Backup)
         function tracarRotaGmaps() {
             if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
                 const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${coordsAtuais.lat},${coordsAtuais.lng}`;
