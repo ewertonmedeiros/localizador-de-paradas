@@ -157,7 +157,7 @@
             color: #888888;
             background-color: #081622;
             border-top: 1px solid var(--border-color);
-            flex-shrink: 0; /* Impede que o rodapé seja esmagado pelo flexbox */
+            flex-shrink: 0; 
         }
 
         footer span {
@@ -168,36 +168,33 @@
         /* VISÃO MOBILE */
         @media (max-width: 768px) {
             html, body {
-                height: 100%;
-                overflow: hidden; /* Mantém o padrão de App sem o position fixo problemático */
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto; /* Devolve a rolagem natural para o mobile */
             }
 
             body {
                 padding: 0;
-                align-items: stretch; 
-                display: flex;
+                align-items: flex-start; 
             }
 
             .app-wrapper {
-                max-width: 100%;
-                height: 100%;
+                width: 100%;
+                min-height: 100dvh; /* Garante que preencha a tela toda, mas pode crescer */
                 border-radius: 0;
                 border: none;
                 display: flex;
                 flex-direction: column;
             }
 
-            .header { padding: 10px 15px 5px 15px; }
+            .header { padding: 15px 15px 5px 15px; }
             h2 { font-size: 20px; }
 
             .controls-panel { 
                 padding: 10px 15px 15px 15px; 
-                max-height: 48vh; /* Limite seguro para não engolir o mapa */
-                overflow-y: auto; 
+                flex-shrink: 0; /* O painel de controle mantém seu tamanho */
             }
-
-            .controls-panel::-webkit-scrollbar { width: 4px; }
-            .controls-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
             .input-group, .actions-group {
                 flex-direction: column;
@@ -208,12 +205,18 @@
             .btn { padding: 14px 15px; font-size: 15px; min-width: 100%; }
 
             .map-container {
-                min-height: 200px; /* Altura mínima garantida para o mapa não sumir */
+                flex: 1; /* Mapa estica para preencher o resto */
+                min-height: 50vh; /* Mantém um bom tamanho de visualização */
+                display: flex;
+            }
+            
+            #map {
+                flex: 1;
             }
             
             footer {
-                padding: 10px;
-                font-size: 11px;
+                padding: 15px;
+                font-size: 12px;
             }
         }
     </style>
@@ -239,7 +242,6 @@
                 <button class="btn btn-route" onclick="tracarRotaGmaps()">🗺️ Abrir Google Maps</button>
             </div>
 
-            <!-- O painel onde injetamos o botão final do GPS -->
             <div class="info-panel" id="routeInfo"></div>
         </div>
 
@@ -252,6 +254,7 @@
         </footer>
     </div>
 
+    <!-- JS do Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map = L.map('map').setView([-25.4417, -49.0633], 6);
@@ -280,14 +283,6 @@
                 buscarNoMapa();
             }
         });
-
-        function rolarPainelParaFim() {
-            const painel = document.getElementById('painelControles');
-            painel.scrollTo({
-                top: painel.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
 
         function buscarNoMapa() {
             const latInput = document.getElementById('lat').value;
@@ -327,7 +322,9 @@
                 }
 
                 const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
-                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}`;
+                
+                // Mensagem atualizada com aviso de segurança
+                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
                 
                 const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
                 window.open(urlWhatsApp, '_blank');
@@ -343,7 +340,6 @@
             const infoPanel = document.getElementById('routeInfo');
             infoPanel.innerHTML = "Obtendo sua localização atual. Aguarde...";
             infoPanel.style.display = "block";
-            rolarPainelParaFim(); 
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -371,14 +367,12 @@
                                 tempoFormatado = `${horas}h ${minRestantes}min`;
                             }
 
-                            // Botão dinâmico inserido aqui com chamada para a função do Google Maps
                             infoPanel.innerHTML = `
                                 <strong style="color: var(--alert-color);">🚨 Relatório de Deslocamento</strong><br>
                                 <b>Distância:</b> ${distanciaKm} km<br>
                                 <b>Tempo Estimado:</b> ${tempoFormatado}<br>
                                 <button class="btn btn-route" style="margin-top: 12px; width: 100%; font-size: 15px;" onclick="tracarRotaGmaps()">🗺️ Iniciar Navegação no GPS</button>
                             `;
-                            rolarPainelParaFim(); 
 
                             if (routeLayer) map.removeLayer(routeLayer);
                             if (equipeMarker) map.removeLayer(equipeMarker);
@@ -407,7 +401,6 @@
 
         function tracarRotaGmaps() {
             if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
-                // Ao abrir este link no celular, o aparelho intercepta e abre direto no app (Waze/Google Maps) se estiver instalado
                 const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${coordsAtuais.lat},${coordsAtuais.lng}`;
                 window.open(urlGmaps, '_blank');
             }
