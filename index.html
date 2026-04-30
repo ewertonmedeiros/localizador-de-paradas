@@ -10,7 +10,6 @@
     
     <style>
         :root {
-            /* Paleta original */
             --bg-color: #121212;         
             --panel-bg: #0A1C2C;         
             --text-color: #53A53B;       
@@ -25,7 +24,6 @@
             --border-color: #333333;     
         }
 
-        /* Configuração Base */
         html, body {
             margin: 0;
             padding: 0;
@@ -35,9 +33,7 @@
             color: var(--text-color);
         }
 
-        /* ====================================================
-           VISÃO DESKTOP (Padrão para telas grandes)
-           ==================================================== */
+        /* VISÃO DESKTOP */
         body {
             display: flex;
             justify-content: center;
@@ -61,10 +57,12 @@
         .header {
             padding: 20px 25px 5px 25px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .controls-panel {
             padding: 15px 25px 25px 25px;
+            flex-shrink: 0;
         }
 
         h2 { margin: 0 0 5px 0; font-size: 24px; font-weight: 600; }
@@ -143,6 +141,7 @@
             height: 500px; 
             position: relative;
             border-top: 1px solid var(--border-color);
+            flex: 1 1 auto;
         }
 
         #map {
@@ -158,7 +157,7 @@
             color: #888888;
             background-color: #081622;
             border-top: 1px solid var(--border-color);
-            flex-shrink: 0;
+            flex-shrink: 0; /* Impede que o rodapé seja esmagado pelo flexbox */
         }
 
         footer span {
@@ -166,39 +165,35 @@
             font-weight: 600;
         }
 
-        /* ====================================================
-           VISÃO MOBILE (Telas menores que 768px)
-           ==================================================== */
+        /* VISÃO MOBILE */
         @media (max-width: 768px) {
             html, body {
-                overflow: hidden; 
-                position: fixed;  
-                width: 100%;
                 height: 100%;
+                overflow: hidden; /* Mantém o padrão de App sem o position fixo problemático */
             }
 
             body {
                 padding: 0;
                 align-items: stretch; 
+                display: flex;
             }
 
             .app-wrapper {
                 max-width: 100%;
+                height: 100%;
                 border-radius: 0;
                 border: none;
-                height: 100dvh; 
                 display: flex;
                 flex-direction: column;
             }
 
-            .header { padding: 15px 15px 5px 15px; }
+            .header { padding: 10px 15px 5px 15px; }
             h2 { font-size: 20px; }
 
             .controls-panel { 
                 padding: 10px 15px 15px 15px; 
-                max-height: 55vh; 
+                max-height: 48vh; /* Limite seguro para não engolir o mapa */
                 overflow-y: auto; 
-                flex-shrink: 0;
             }
 
             .controls-panel::-webkit-scrollbar { width: 4px; }
@@ -213,8 +208,7 @@
             .btn { padding: 14px 15px; font-size: 15px; min-width: 100%; }
 
             .map-container {
-                flex: 1; 
-                min-height: 35vh; 
+                min-height: 200px; /* Altura mínima garantida para o mapa não sumir */
             }
             
             footer {
@@ -245,6 +239,7 @@
                 <button class="btn btn-route" onclick="tracarRotaGmaps()">🗺️ Abrir Google Maps</button>
             </div>
 
+            <!-- O painel onde injetamos o botão final do GPS -->
             <div class="info-panel" id="routeInfo"></div>
         </div>
 
@@ -257,7 +252,6 @@
         </footer>
     </div>
 
-    <!-- JS do Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map = L.map('map').setView([-25.4417, -49.0633], 6);
@@ -377,10 +371,12 @@
                                 tempoFormatado = `${horas}h ${minRestantes}min`;
                             }
 
+                            // Botão dinâmico inserido aqui com chamada para a função do Google Maps
                             infoPanel.innerHTML = `
                                 <strong style="color: var(--alert-color);">🚨 Relatório de Deslocamento</strong><br>
                                 <b>Distância:</b> ${distanciaKm} km<br>
-                                <b>Tempo Estimado:</b> ${tempoFormatado}
+                                <b>Tempo Estimado:</b> ${tempoFormatado}<br>
+                                <button class="btn btn-route" style="margin-top: 12px; width: 100%; font-size: 15px;" onclick="tracarRotaGmaps()">🗺️ Iniciar Navegação no GPS</button>
                             `;
                             rolarPainelParaFim(); 
 
@@ -411,6 +407,7 @@
 
         function tracarRotaGmaps() {
             if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
+                // Ao abrir este link no celular, o aparelho intercepta e abre direto no app (Waze/Google Maps) se estiver instalado
                 const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${coordsAtuais.lat},${coordsAtuais.lng}`;
                 window.open(urlGmaps, '_blank');
             }
