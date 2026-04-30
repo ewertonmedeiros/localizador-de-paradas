@@ -2,6 +2,8 @@
 
 Um sistema web ágil e responsivo desenvolvido para o Centro de Controle Operacional (CCO) da Malha Sul. Este aplicativo tem como objetivo otimizar o tempo de resposta em ocorrências ferroviárias, permitindo a localização exata de trens ou veículos de via e o despacho imediato de equipes de atendimento via WhatsApp, com cálculo automático de rotas rodoviárias.
 
+🔗 **[Acessar o Painel Ao Vivo](https://ewertonmedeiros.github.io/localizador-de-paradas/)**
+
 ---
 
 ## 🚀 Funcionalidades
