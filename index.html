@@ -136,17 +136,20 @@
             color: #e0e0e0;
         }
 
+        /* O segredo da correção do mapa está aqui: Position absolute no mapa garante que o Leaflet não se perca */
         .map-container {
             width: 100%;
             height: 500px; 
             position: relative;
             border-top: 1px solid var(--border-color);
-            flex: 1 1 auto;
         }
 
         #map {
-            width: 100%;
-            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 1; 
         }
 
@@ -170,18 +173,16 @@
             html, body {
                 height: auto;
                 min-height: 100%;
-                overflow-x: hidden;
-                overflow-y: auto; /* Devolve a rolagem natural para o mobile */
             }
 
             body {
                 padding: 0;
-                align-items: flex-start; 
+                display: flex; /* Garante que o app-wrapper possa usar 100dvh */
             }
 
             .app-wrapper {
                 width: 100%;
-                min-height: 100dvh; /* Garante que preencha a tela toda, mas pode crescer */
+                min-height: 100dvh; 
                 border-radius: 0;
                 border: none;
                 display: flex;
@@ -193,7 +194,7 @@
 
             .controls-panel { 
                 padding: 10px 15px 15px 15px; 
-                flex-shrink: 0; /* O painel de controle mantém seu tamanho */
+                flex-shrink: 0; 
             }
 
             .input-group, .actions-group {
@@ -205,13 +206,9 @@
             .btn { padding: 14px 15px; font-size: 15px; min-width: 100%; }
 
             .map-container {
-                flex: 1; /* Mapa estica para preencher o resto */
-                min-height: 50vh; /* Mantém um bom tamanho de visualização */
-                display: flex;
-            }
-            
-            #map {
-                flex: 1;
+                height: auto;
+                flex-grow: 1; /* Ocupa todo o espaço restante entre o painel e o rodapé */
+                min-height: 50vh; /* No mobile, o mapa tem que ter no mínimo metade da tela */
             }
             
             footer {
@@ -268,11 +265,15 @@
             attribution: '&copy; OpenStreetMap &copy; CARTO'
         }).addTo(map);
 
+        // Força a atualização do tamanho do mapa em dispositivos móveis
         window.addEventListener('resize', function() {
-            map.invalidateSize();
+            setTimeout(() => map.invalidateSize(), 200);
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Gatilho inicial para evitar tela cinza no carregamento mobile
+            setTimeout(() => map.invalidateSize(), 300);
+
             const params = new URLSearchParams(window.location.search);
             const urlLat = params.get('lat');
             const urlLng = params.get('lng');
@@ -323,12 +324,16 @@
 
                 const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
                 
-                // Mensagem atualizada com aviso de segurança
                 const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
                 
                 const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
                 window.open(urlWhatsApp, '_blank');
             }
+        }
+
+        function rolarParaResultado() {
+            const painelInfo = document.getElementById('routeInfo');
+            painelInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function calcularRotaEquipe() {
@@ -340,6 +345,7 @@
             const infoPanel = document.getElementById('routeInfo');
             infoPanel.innerHTML = "Obtendo sua localização atual. Aguarde...";
             infoPanel.style.display = "block";
+            rolarParaResultado();
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -373,6 +379,7 @@
                                 <b>Tempo Estimado:</b> ${tempoFormatado}<br>
                                 <button class="btn btn-route" style="margin-top: 12px; width: 100%; font-size: 15px;" onclick="tracarRotaGmaps()">🗺️ Iniciar Navegação no GPS</button>
                             `;
+                            rolarParaResultado();
 
                             if (routeLayer) map.removeLayer(routeLayer);
                             if (equipeMarker) map.removeLayer(equipeMarker);
