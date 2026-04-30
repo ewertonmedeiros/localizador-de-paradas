@@ -234,7 +234,7 @@
             </div>
 
             <div class="actions-group" id="actionsGroup">
-                <button class="btn btn-share" onclick="compartilharWhatsApp()">📱 Despachar Equipe (WhatsApp)</button>
+                <button class="btn btn-share" onclick="compartilharWhatsApp()">📱 Deslocar Equipe (WhatsApp)</button>
                 <button class="btn btn-alert" onclick="calcularRotaEquipe()">🚨 Traçar Minha Rota</button>
                 <button class="btn btn-route" onclick="tracarRotaGmaps()">🗺️ Abrir Google Maps</button>
             </div>
@@ -324,7 +324,7 @@
 
                 const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
                 
-                const mensagem = `*🚨 Deslocamento de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
+                const mensagem = `*🚨 Deslocamento de Equipe Emergencial - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}\n\n⚠️ _Siga com cuidado, respeitando os limites da via. Se não for seguro, não faça._`;
                 
                 const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
                 window.open(urlWhatsApp, '_blank');
