@@ -205,13 +205,8 @@
             </div>
 
             <div class="actions-group" id="actionsGroup">
-                <!-- Botão 1: Ação do CCO (Gera o link com as coordenadas e envia no zap) -->
                 <button class="btn btn-share" onclick="compartilharWhatsApp()">📱 Despachar Equipe (WhatsApp)</button>
-                
-                <!-- Botão 2: Ação da Equipe (Aciona o GPS do celular do funcionário para chegar ao local) -->
                 <button class="btn btn-alert" onclick="calcularRotaEquipe()">🚨 Traçar Minha Rota</button>
-                
-                <!-- Botão 3: Opção genérica para abrir a localização em outro app -->
                 <button class="btn btn-route" onclick="tracarRotaGmaps()">🗺️ Abrir Google Maps</button>
             </div>
 
@@ -241,7 +236,6 @@
             map.invalidateSize();
         });
 
-        // Lê a URL ao carregar a página (Equipe acessando via link do WhatsApp)
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const urlLat = params.get('lat');
@@ -283,20 +277,27 @@
             document.getElementById('actionsGroup').style.display = 'flex';
         }
 
-        // Função do WhatsApp (Ação do CCO)
         function compartilharWhatsApp() {
             if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
-                const baseUrl = window.location.origin + window.location.pathname;
+                // Monta a URL base do site onde o index.html está hospedado
+                let baseUrl = window.location.origin + window.location.pathname;
+                
+                // Se o usuário estiver testando localmente (file:///), isso garante que a URL fique limpa para não bugar a mensagem.
+                if (baseUrl === "null" || baseUrl.includes("file://")) {
+                    baseUrl = "SeuLinkHospedadoAqui"; // Lembre-se de subir para o GitHub Pages para o link ser clicável pela equipe.
+                }
+
                 const linkSistema = `${baseUrl}?lat=${coordsAtuais.lat}&lng=${coordsAtuais.lng}`;
                 
-                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*%0A%0A*Localização da Parada:*%0ALat: ${coordsAtuais.lat}%0ALng: ${coordsAtuais.lng}%0A%0A*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*%0A${linkSistema}`;
+                // Texto formatado com quebras de linha normais (\n)
+                const mensagem = `*🚨 Despacho de Equipe - CCO Malha Sul*\n\n*Localização da Parada:*\nLat: ${coordsAtuais.lat}\nLng: ${coordsAtuais.lng}\n\n*Acesse o link abaixo para visualizar a ocorrência no mapa e traçar sua rota até o local:*\n${linkSistema}`;
                 
-                const urlWhatsApp = `https://api.whatsapp.com/send?text=${mensagem}`;
+                // encodeURIComponent é a chave! Ele codifica o texto e o link (transformando o & em %26, etc) para o WhatsApp processar 100% da mensagem
+                const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
                 window.open(urlWhatsApp, '_blank');
             }
         }
 
-        // Função OSRM (Ação da Equipe)
         function calcularRotaEquipe() {
             if (!navigator.geolocation) {
                 alert("Seu navegador não suporta geolocalização.");
@@ -362,7 +363,6 @@
             );
         }
 
-        // Função Google Maps (Ação de Backup)
         function tracarRotaGmaps() {
             if(coordsAtuais.lat !== null && coordsAtuais.lng !== null) {
                 const urlGmaps = `https://www.google.com/maps/dir/?api=1&destination=${coordsAtuais.lat},${coordsAtuais.lng}`;
